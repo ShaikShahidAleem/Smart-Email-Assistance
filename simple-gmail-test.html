@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Gmail API Test</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 800px; 
+            margin: 20px auto; 
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button { 
+            background: #4285f4; 
+            color: white; 
+            padding: 15px 30px; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer;
+            margin: 10px 5px;
+            font-size: 16px;
+        }
+        button:hover { background: #3367d6; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        .result { 
+            margin: 20px 0; 
+            padding: 15px; 
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .success { background: #e6f4ea; border: 1px solid #34a853; }
+        .error { background: #fce8e6; border: 1px solid #ea4335; }
+        .info { background: #e8f0fe; border: 1px solid #4285f4; }
+        .warning { background: #fef7e0; border: 1px solid #fbbc04; }
+        h1 { color: #1a73e8; text-align: center; }
+        .step { margin: 20px 0; padding: 15px; background: #f8f9fa; border-left: 4px solid #1a73e8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Simple Gmail API Test</h1>
+        
+        <div class="step">
+            <h3>Step 1: Authentication</h3>
+            <button id="signInBtn" onclick="signIn()">Sign In with Google</button>
+            <button id="signOutBtn" onclick="signOut()" disabled>Sign Out</button>
+        </div>
+
+        <div class="step">
+            <h3>Step 2: API Tests</h3>
+            <button id="testGmailBtn" onclick="testGmailAPI()" disabled>Test Gmail API</button>
+            <button id="testBackendBtn" onclick="testBackend()">Test Backend</button>
+            <button id="showTokensBtn" onclick="showTokens()">Show Stored Tokens</button>
+        </div>
+
+        <div class="step">
+            <h3>Step 3: Debug Information</h3>
+            <button onclick="checkRequirements()">Check Requirements</button>
+        </div>
+
+        <div id="result" class="result info">
+            Ready to test Gmail API integration...
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <!-- Your Firebase Config -->
+    <script src="firebaseConfig.js"></script>
+
+    <script>
+        let auth, db;
+        
+        function log(message, type = 'info') {
+            const resultDiv = document.getElementById('result');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : type === 'warning' ? 'warning' : 'info';
+            resultDiv.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+        }
+
+        function initializeFirebase() {
+            if (typeof firebase !== 'undefined' && window.firebaseConfig) {
+                const app = firebase.initializeApp(window.firebaseConfig);
+                auth = firebase.auth();
+                db = firebase.firestore();
+                
+                // Set up auth state listener
+                auth.onAuthStateChanged((user) => {
+                    const signInBtn = document.getElementById('signInBtn');
+                    const signOutBtn = document.getElementById('signOutBtn');
+                    const testGmailBtn = document.getElementById('testGmailBtn');
+                    
+                    if (user) {
+                        signInBtn.disabled = true;
+                        signOutBtn.disabled = false;
+                        testGmailBtn.disabled = false;
+                        
+                        log(`✅ User signed in: ${user.displayName} (${user.email})`, 'success');
+                        log(`User ID: ${user.uid}`);
+                        
+                        // Store user info
+                        const userData = {
+                            email: user.email,
+                            displayName: user.displayName,
+                            uid: user.uid,
+                            lastLogin: new Date().toISOString()
+                        };
+                        
+                        // Store in Firestore if available
+                        if (db) {
+                            db.collection('users').doc(user.uid).set(userData, { merge: true })
+                                .then(() => log('✅ User data stored in Firestore', 'success'))
+                                .catch(err => log(`❌ Failed to store user data: ${err.message}`, 'error'));
+                        }
+                    } else {
+                        signInBtn.disabled = false;
+                        signOutBtn.disabled = true;
+                        testGmailBtn.disabled = true;
+                        
+                        log('❌ User signed out', 'info');
+                    }
+                });
+                
+                log('✅ Firebase initialized', 'success');
+            } else {
+                log('❌ Firebase or config not found', 'error');
+            }
+        }
+
+        async function signIn() {
+            try {
+                log('🔄 Signing in with Google...', 'info');
+                
+                const provider = new firebase.auth.GoogleAuthProvider();
+                provider.addScope('https://www.googleapis.com/auth/gmail.readonly');
+                provider.addScope('https://www.googleapis.com/auth/gmail.modify');
+                provider.addScope('https://www.googleapis.com/auth/gmail.compose');
+                provider.addScope('https://www.googleapis.com/auth/userinfo.email');
+                provider.addScope('https://www.googleapis.com/auth/userinfo.profile');
+                
+                const result = await auth.signInWithPopup(provider);
+                
+                // Get Firebase ID token
+                const idToken = await result.user.getIdToken();
+                localStorage.setItem('firebase_id_token', idToken);
+                log('✅ Firebase ID token stored', 'success');
+                
+                // Store user data
+                const userData = {
+                    email: result.user.email,
+                    displayName: result.user.displayName,
+                    uid: result.user.uid,
+                    accessToken: idToken // Using Firebase token for now
+                };
+                
+                localStorage.setItem('gmail_access_token', idToken);
+                localStorage.setItem('user_info', JSON.stringify(userData));
+                
+                log('✅ Authentication completed successfully', 'success');
+                
+            } catch (error) {
+                log(`❌ Sign in failed: ${error.message}`, 'error');
+                console.error('Sign in error:', error);
+            }
+        }
+
+        async function signOut() {
+            try {
+                await auth.signOut();
+                localStorage.removeItem('firebase_id_token');
+                localStorage.removeItem('gmail_access_token');
+                localStorage.removeItem('user_info');
+                log('✅ Signed out successfully', 'success');
+            } catch (error) {
+                log(`❌ Sign out failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testBackend() {
+            try {
+                log('🔄 Testing backend connection...', 'info');
+                
+                const response = await fetch('http://localhost:3001/api/health');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    log(`✅ Backend working: ${JSON.stringify(data)}`, 'success');
+                } else {
+                    log(`❌ Backend error: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Backend test failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testGmailAPI() {
+            try {
+                log('🔄 Testing Gmail API...', 'info');
+                
+                const idToken = localStorage.getItem('firebase_id_token');
+                if (!idToken) {
+                    log('❌ No authentication token found', 'error');
+                    return;
+                }
+                
+                log('📧 Making Gmail API request...', 'info');
+                
+                const response = await fetch('http://localhost:3001/api/gmail/fetch', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${idToken}`
+                    },
+                    body: JSON.stringify({ 
+                        idToken: idToken, 
+                        maxResults: 5 
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    log(`✅ Gmail API working! Found ${data.emails ? data.emails.length : 0} emails`, 'success');
+                    if (data.emails && data.emails.length > 0) {
+                        log('📧 Sample email:', 'info');
+                        log(JSON.stringify(data.emails[0], null, 2), 'info');
+                    }
+                } else {
+                    log(`❌ Gmail API error (${response.status}): ${JSON.stringify(data)}`, 'error');
+                    log('💡 This usually means OAuth tokens need to be properly configured', 'warning');
+                }
+                
+            } catch (error) {
+                log(`❌ Gmail API test failed: ${error.message}`, 'error');
+            }
+        }
+
+        function showTokens() {
+            log('🔍 Stored tokens:', 'info');
+            log(`Firebase ID Token: ${localStorage.getItem('firebase_id_token') ? 'Present' : 'Missing'}`);
+            log(`Gmail Access Token: ${localStorage.getItem('gmail_access_token') ? 'Present' : 'Missing'}`);
+            log(`User Info: ${localStorage.getItem('user_info') ? 'Present' : 'Missing'}`);
+        }
+
+        function checkRequirements() {
+            log('🔍 Checking requirements:', 'info');
+            
+            // Check if server is running
+            log('Checking server...', 'info');
+            testBackend();
+            
+            // Check Firebase
+            if (typeof firebase !== 'undefined') {
+                log('✅ Firebase SDK loaded', 'success');
+            } else {
+                log('❌ Firebase SDK not loaded', 'error');
+            }
+            
+            // Check if user is authenticated
+            if (auth && auth.currentUser) {
+                log('✅ User is authenticated', 'success');
+            } else {
+                log('❌ User not authenticated', 'error');
+            }
+            
+            // Check environment
+            log('Environment check:', 'info');
+            log(`HTTPS: ${location.protocol === 'https:' ? 'Yes' : 'No (may cause issues)'}`);
+            log(`Domain: ${location.hostname}`);
+            log(`Port: ${location.port || '80'}`);
+        }
+
+        // Initialize when page loads
+        window.addEventListener('load', () => {
+            initializeFirebase();
+        });
+    </script>
+</body>
+</html>

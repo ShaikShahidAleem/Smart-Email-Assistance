@@ -1,0 +1,32 @@
+// Simple test file to check if backend is responding
+// Save as test-backend.html in the project folder
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Backend Test</title>
+</head>
+<body>
+    <h1>Testing Backend Connection</h1>
+    <button onclick="testBackend()">Test Backend</button>
+    <div id="result"></div>
+
+    <script>
+        async function testBackend() {
+            const result = document.getElementById('result');
+            
+            try {
+                const response = await fetch('http://localhost:3001/api/health');
+                const text = await response.text();
+                result.innerHTML = `<p style="color: green;">✅ Backend is working!</p><p>Response: ${text}</p>`;
+            } catch (error) {
+                result.innerHTML = `<p style="color: red;">❌ Backend not working</p><p>Error: ${error.message}</p>`;
+                console.error('Backend test failed:', error);
+            }
+        }
+        
+        // Test immediately
+        testBackend();
+    </script>
+</body>
+</html>

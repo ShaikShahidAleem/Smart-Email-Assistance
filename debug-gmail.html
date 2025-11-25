@@ -1,0 +1,162 @@
+// Debug tool to test Gmail integration
+// Save as debug-gmail.html in the project folder
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gmail Debug Tool</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        button { margin: 5px; padding: 10px 15px; }
+        .success { color: green; }
+        .error { color: red; }
+        .warning { color: orange; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 3px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Gmail Integration Debug Tool</h1>
+    
+    <div class="section">
+        <h2>1. Firebase Auth Test</h2>
+        <button onclick="testFirebase()">Test Firebase Auth</button>
+        <div id="firebase-result"></div>
+    </div>
+
+    <div class="section">
+        <h2>2. Backend API Test</h2>
+        <button onclick="testBackend()">Test Backend Health</button>
+        <div id="backend-result"></div>
+    </div>
+
+    <div class="section">
+        <h2>3. Gmail API Test (Requires Auth)</h2>
+        <button onclick="testGmailAPI()">Test Gmail Fetch</button>
+        <div id="gmail-result"></div>
+    </div>
+
+    <div class="section">
+        <h2>4. Environment Check</h2>
+        <button onclick="checkEnvironment()">Check Environment</button>
+        <div id="env-result"></div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="firebaseConfig.js"></script>
+
+    <script>
+        async function testFirebase() {
+            const result = document.getElementById('firebase-result');
+            try {
+                if (!window.firebaseAuth) {
+                    throw new Error('Firebase Auth not initialized');
+                }
+                
+                const user = window.firebaseAuth.currentUser;
+                if (user) {
+                    result.innerHTML = `<p class="success">✅ Firebase Auth working</p>
+                                       <p>User: ${user.email}</p>
+                                       <p>Token: ${user.accessToken ? 'Available' : 'Not available'}</p>`;
+                } else {
+                    result.innerHTML = `<p class="warning">⚠️ No user signed in</p>
+                                       <button onclick="signInForTest()">Sign In for Test</button>`;
+                }
+            } catch (error) {
+                result.innerHTML = `<p class="error">❌ Firebase Error: ${error.message}</p>`;
+                console.error('Firebase test failed:', error);
+            }
+        }
+
+        async function signInForTest() {
+            try {
+                await window.signInWithGoogle();
+                testFirebase();
+            } catch (error) {
+                alert('Sign-in failed: ' + error.message);
+            }
+        }
+
+        async function testBackend() {
+            const result = document.getElementById('backend-result');
+            try {
+                const response = await fetch('http://localhost:3001/api/health');
+                if (response.ok) {
+                    const text = await response.text();
+                    result.innerHTML = `<p class="success">✅ Backend running</p><p>Response: ${text}</p>`;
+                } else {
+                    result.innerHTML = `<p class="error">❌ Backend error: ${response.status}</p>`;
+                }
+            } catch (error) {
+                result.innerHTML = `<p class="error">❌ Backend not accessible</p>
+                                   <p>Error: ${error.message}</p>
+                                   <p><strong>Make sure to run: npm run dev</strong></p>`;
+            }
+        }
+
+        async function testGmailAPI() {
+            const result = document.getElementById('gmail-result');
+            try {
+                if (!window.currentUser) {
+                    result.innerHTML = `<p class="warning">⚠️ Please sign in first</p>`;
+                    return;
+                }
+
+                const idToken = localStorage.getItem('gmail_access_token');
+                if (!idToken) {
+                    result.innerHTML = `<p class="error">❌ No Gmail access token found</p>
+                                       <p>Try signing out and signing back in</p>`;
+                    return;
+                }
+
+                const response = await fetch('http://localhost:3001/api/gmail/fetch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ idToken, maxResults: 5 })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    result.innerHTML = `<p class="success">✅ Gmail API working!</p>
+                                       <p>Found ${data.emails.length} emails</p>
+                                       <pre>${JSON.stringify(data.emails.slice(0,2), null, 2)}</pre>`;
+                } else {
+                    const error = await response.text();
+                    result.innerHTML = `<p class="error">❌ Gmail API error: ${response.status}</p>
+                                       <pre>${error}</pre>`;
+                }
+            } catch (error) {
+                result.innerHTML = `<p class="error">❌ Gmail test failed: ${error.message}</p>`;
+            }
+        }
+
+        function checkEnvironment() {
+            const result = document.getElementById('env-result');
+            const checks = [];
+            
+            // Check localStorage for tokens
+            const hasToken = !!localStorage.getItem('gmail_access_token');
+            checks.push(`Gmail token in localStorage: ${hasToken ? '✅ Yes' : '❌ No'}`);
+            
+            // Check if Firebase is ready
+            const firebaseReady = !!window.firebaseAuth;
+            checks.push(`Firebase ready: ${firebaseReady ? '✅ Yes' : '❌ No'}`);
+            
+            // Check current user
+            const hasUser = !!window.currentUser;
+            checks.push(`User signed in: ${hasUser ? '✅ Yes' : '❌ No'}`);
+            
+            // Check service files exist (we can't check this from browser, so note it)
+            checks.push(`Check these files exist: .env, serviceAccountKey.json`);
+            
+            result.innerHTML = `<pre>${checks.join('\n')}</pre>`;
+        }
+
+        // Run environment check on load
+        checkEnvironment();
+    </script>
+</body>
+</html>
