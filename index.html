@@ -236,6 +236,7 @@ Return only the reply text without subject line.`
           const [chatInput, setChatInput] = useState('');
           const [drafts, setDrafts] = useState([]);
           const [processing, setProcessing] = useState(false);
+          const [aiProcessing, setAiProcessing] = useState(false);
           const [draftContent, setDraftContent] = useState({ subject: '', body: '' });
           const [isAuthenticated, setIsAuthenticated] = useState(false);
           const [user, setUser] = useState(null);
@@ -372,48 +373,113 @@ Return only the reply text without subject line.`
             }
           };
 
-          const processEmails = async () => {
-            setProcessing(true);
+          const processEmails = async (useAI = false) => {
+            if (useAI) {
+              setAiProcessing(true);
+            } else {
+              setProcessing(true);
+            }
             
-            // Simulate LLM processing with realistic categorization
-            const processedEmails = emails.map(email => {
-              let category = 'Important';
-              let actionItems = [];
-              
-              // Simple rule-based categorization for demo
-              if (email.subject.toLowerCase().includes('newsletter') || 
-                  email.sender.includes('newsletter') ||
-                  email.subject.includes('Daily')) {
-                category = 'Newsletter';
-              } else if (email.subject.toLowerCase().includes('won') || 
-                         email.subject.includes('!!!') ||
-                         email.subject.includes('50% OFF')) {
-                category = 'Spam';
-              } else if (email.body.toLowerCase().includes('please') || 
-                         email.body.toLowerCase().includes('need to') ||
-                         email.subject.toLowerCase().includes('action required')) {
-                category = 'To-Do';
+            try {
+              if (useAI) {
+                // AI-powered email analysis
+                const processedEmails = [];
                 
-                // Extract action items for To-Do emails
-                if (email.subject.includes('Code Review')) {
-                  actionItems = [{ task: 'Review code in feature/user-authentication branch', deadline: 'ASAP' }];
-                } else if (email.subject.includes('Training')) {
-                  actionItems = [{ task: 'Complete annual compliance training', deadline: 'November 30' }];
-                } else if (email.subject.includes('Meeting')) {
-                  actionItems = [{ task: 'Provide availability for Q4 budget meeting', deadline: 'This week' }];
+                for (const email of emails) {
+                  try {
+                    const response = await fetch('/api/ai/analyze-email', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({ email: email }),
+                    });
+
+                    if (response.ok) {
+                      const data = await response.json();
+                      const analysis = data.analysis;
+                      
+                      processedEmails.push({
+                        ...email,
+                        category: analysis.category,
+                        priority: analysis.priority,
+                        sentiment: analysis.sentiment,
+                        summary: analysis.summary,
+                        actionItems: analysis.actionItems || []
+                      });
+                    } else {
+                      throw new Error('AI analysis failed');
+                    }
+                  } catch (error) {
+                    console.warn(`AI analysis failed for email ${email.id}, using fallback:`, error);
+                    // Fallback categorization
+                    const fallbackEmail = getFallbackAnalysis(email);
+                    processedEmails.push(fallbackEmail);
+                  }
                 }
-              } else if (email.subject.toLowerCase().includes('urgent')) {
-                category = 'Important';
-                actionItems = [{ task: 'Investigate production server downtime', deadline: 'Immediate' }];
+                
+                setTimeout(() => {
+                  setEmails(processedEmails);
+                  setAiProcessing(false);
+                }, 1000);
+              } else {
+                // Original rule-based processing
+                const processedEmails = emails.map(email => {
+                  const fallbackEmail = getFallbackAnalysis(email);
+                  return fallbackEmail;
+                });
+                
+                setTimeout(() => {
+                  setEmails(processedEmails);
+                  setProcessing(false);
+                }, 1500);
               }
-              
-              return { ...email, category, actionItems };
-            });
-            
-            setTimeout(() => {
-              setEmails(processedEmails);
+            } catch (error) {
+              console.error('Error processing emails:', error);
               setProcessing(false);
-            }, 1500);
+              setAiProcessing(false);
+            }
+          };
+
+          const getFallbackAnalysis = (email) => {
+            let category = 'Important';
+            let actionItems = [];
+            
+            // Simple rule-based categorization
+            if (email.subject.toLowerCase().includes('newsletter') || 
+                email.sender.includes('newsletter') ||
+                email.subject.includes('Daily')) {
+              category = 'Newsletter';
+            } else if (email.subject.toLowerCase().includes('won') || 
+                       email.subject.includes('!!!') ||
+                       email.subject.includes('50% OFF')) {
+              category = 'Spam';
+            } else if (email.body.toLowerCase().includes('please') || 
+                       email.body.toLowerCase().includes('need to') ||
+                       email.subject.toLowerCase().includes('action required')) {
+              category = 'To-Do';
+              
+              // Extract action items for To-Do emails
+              if (email.subject.includes('Code Review')) {
+                actionItems = [{ task: 'Review code in feature/user-authentication branch', deadline: 'ASAP' }];
+              } else if (email.subject.includes('Training')) {
+                actionItems = [{ task: 'Complete annual compliance training', deadline: 'November 30' }];
+              } else if (email.subject.includes('Meeting')) {
+                actionItems = [{ task: 'Provide availability for Q4 budget meeting', deadline: 'This week' }];
+              }
+            } else if (email.subject.toLowerCase().includes('urgent')) {
+              category = 'Important';
+              actionItems = [{ task: 'Investigate production server downtime', deadline: 'Immediate' }];
+            }
+            
+            return { 
+              ...email, 
+              category, 
+              actionItems,
+              priority: category === 'Important' ? 'high' : category === 'To-Do' ? 'medium' : 'low',
+              sentiment: 'neutral',
+              summary: email.body.substring(0, 100) + '...'
+            };
           };
 
           const handleChatSubmit = async () => {
@@ -421,55 +487,141 @@ Return only the reply text without subject line.`
             
             const userMessage = { role: 'user', content: chatInput };
             setChatMessages([...chatMessages, userMessage]);
-            
-            // Simulate agent response
-            let response = '';
-            const query = chatInput.toLowerCase();
-            
-            if (query.includes('summarize') && selectedEmail) {
-              response = `Summary: ${selectedEmail.subject}\n\nFrom: ${selectedEmail.sender}\n\nKey points: ${selectedEmail.body.substring(0, 150)}...`;
-            } else if (query.includes('urgent') || query.includes('important')) {
-              const urgentEmails = emails.filter(e => e.category === 'Important');
-              response = `You have ${urgentEmails.length} urgent emails:\n${urgentEmails.map(e => `- ${e.subject}`).join('\n')}`;
-            } else if (query.includes('tasks') || query.includes('to-do')) {
-              const allTasks = emails.flatMap(e => e.actionItems);
-              response = allTasks.length > 0 
-                ? `Your tasks:\n${allTasks.map((t, i) => `${i + 1}. ${t.task} (${t.deadline})`).join('\n')}`
-                : 'No pending tasks found.';
-            } else if (query.includes('draft') && selectedEmail) {
-              response = `I've created a draft reply. Check the Drafts tab to review and edit it.`;
-              generateDraft(selectedEmail);
-            } else {
-              response = "I can help you summarize emails, find urgent messages, list tasks, or draft replies. Try asking 'Show me urgent emails' or 'Draft a reply'.";
-            }
-            
-            const agentMessage = { role: 'agent', content: response };
-            setChatMessages([...chatMessages, userMessage, agentMessage]);
             setChatInput('');
+            
+            try {
+              // Prepare context for AI
+              const context = {
+                selectedEmail: selectedEmail ? {
+                  subject: selectedEmail.subject,
+                  sender: selectedEmail.sender,
+                  body: selectedEmail.body
+                } : null,
+                emails: emails,
+                totalEmails: emails.length,
+                categories: {
+                  important: emails.filter(e => e.category === 'Important').length,
+                  newsletter: emails.filter(e => e.category === 'Newsletter').length,
+                  spam: emails.filter(e => e.category === 'Spam').length,
+                  todo: emails.filter(e => e.category === 'To-Do').length
+                },
+                tasks: emails.flatMap(e => e.actionItems)
+              };
+
+              const response = await fetch('/api/ai/chat', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  message: chatInput,
+                  context: JSON.stringify(context)
+                }),
+              });
+
+              if (response.ok) {
+                const data = await response.json();
+                const agentMessage = { role: 'agent', content: data.response };
+                setChatMessages([...chatMessages, userMessage, agentMessage]);
+                
+                // Handle special actions
+                const query = chatInput.toLowerCase();
+                if (query.includes('draft') && selectedEmail) {
+                  setTimeout(() => {
+                    generateDraft(selectedEmail);
+                  }, 1000);
+                }
+              } else {
+                throw new Error('AI service unavailable');
+              }
+            } catch (error) {
+              console.warn('AI service unavailable, using fallback responses:', error);
+              
+              // Fallback to original simple responses
+              let response = '';
+              const query = chatInput.toLowerCase();
+              
+              if (query.includes('summarize') && selectedEmail) {
+                response = `Summary: ${selectedEmail.subject}\n\nFrom: ${selectedEmail.sender}\n\nKey points: ${selectedEmail.body.substring(0, 150)}...`;
+              } else if (query.includes('urgent') || query.includes('important')) {
+                const urgentEmails = emails.filter(e => e.category === 'Important');
+                response = `You have ${urgentEmails.length} urgent emails:\n${urgentEmails.map(e => `- ${e.subject}`).join('\n')}`;
+              } else if (query.includes('tasks') || query.includes('to-do')) {
+                const allTasks = emails.flatMap(e => e.actionItems);
+                response = allTasks.length > 0 
+                  ? `Your tasks:\n${allTasks.map((t, i) => `${i + 1}. ${t.task} (${t.deadline})`).join('\n')}`
+                  : 'No pending tasks found.';
+              } else if (query.includes('draft') && selectedEmail) {
+                response = `I've created a draft reply. Check the Drafts tab to review and edit it.`;
+                generateDraft(selectedEmail);
+              } else {
+                response = "I can help you summarize emails, find urgent messages, list tasks, or draft replies. Try asking 'Show me urgent emails' or 'Draft a reply'.";
+              }
+              
+              const agentMessage = { role: 'agent', content: response };
+              setChatMessages([...chatMessages, userMessage, agentMessage]);
+            }
           };
 
-          const generateDraft = (email) => {
-            let draftBody = '';
-            
-            if (email.subject.toLowerCase().includes('meeting')) {
-              draftBody = `Hi ${email.sender.split('@')[0]},\n\nThank you for reaching out. I'd be happy to join the meeting.\n\nCould you please share an agenda beforehand so I can prepare accordingly? I'm available on both Tuesday and Wednesday afternoons.\n\nLooking forward to the discussion.\n\nBest regards`;
-            } else if (email.subject.toLowerCase().includes('code review')) {
-              draftBody = `Hi ${email.sender.split('@')[0]},\n\nI'll review your code changes today and provide feedback by end of day.\n\nThanks for the heads up!\n\nBest`;
-            } else if (email.subject.toLowerCase().includes('urgent')) {
-              draftBody = `Hi ${email.sender.split('@')[0]},\n\nI've received your urgent message and am investigating the issue immediately. I'll provide an update within the next hour with an ETA for resolution.\n\nThank you for bringing this to our attention.\n\nBest regards`;
-            } else {
-              draftBody = `Hi ${email.sender.split('@')[0]},\n\nThank you for your email regarding "${email.subject}".\n\n[Your response here]\n\nBest regards`;
+          const generateDraft = async (email, draftType = 'reply') => {
+            try {
+              const emailContent = `Subject: ${email.subject}\nFrom: ${email.sender}\nBody: ${email.body}`;
+              
+              const response = await fetch('/api/ai/generate-draft', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  emailContent: emailContent,
+                  draftType: draftType
+                }),
+              });
+
+              if (response.ok) {
+                const data = await response.json();
+                const newDraft = {
+                  id: Date.now(),
+                  originalEmailId: email.id,
+                  subject: `Re: ${email.subject}`,
+                  body: data.draft,
+                  createdAt: new Date().toISOString(),
+                  aiGenerated: true
+                };
+                
+                setDrafts([...drafts, newDraft]);
+                return newDraft;
+              } else {
+                throw new Error('AI service unavailable');
+              }
+            } catch (error) {
+              console.warn('AI draft generation failed, using fallback:', error);
+              
+              // Fallback to original draft generation
+              let draftBody = '';
+              
+              if (email.subject.toLowerCase().includes('meeting')) {
+                draftBody = `Hi ${email.sender.split('@')[0]},\n\nThank you for reaching out. I'd be happy to join the meeting.\n\nCould you please share an agenda beforehand so I can prepare accordingly? I'm available on both Tuesday and Wednesday afternoons.\n\nLooking forward to the discussion.\n\nBest regards`;
+              } else if (email.subject.toLowerCase().includes('code review')) {
+                draftBody = `Hi ${email.sender.split('@')[0]},\n\nI'll review your code changes today and provide feedback by end of day.\n\nThanks for the heads up!\n\nBest`;
+              } else if (email.subject.toLowerCase().includes('urgent')) {
+                draftBody = `Hi ${email.sender.split('@')[0]},\n\nI've received your urgent message and am investigating the issue immediately. I'll provide an update within the next hour with an ETA for resolution.\n\nThank you for bringing this to our attention.\n\nBest regards`;
+              } else {
+                draftBody = `Hi ${email.sender.split('@')[0]},\n\nThank you for your email regarding "${email.subject}".\n\n[Your response here]\n\nBest regards`;
+              }
+              
+              const newDraft = {
+                id: Date.now(),
+                originalEmailId: email.id,
+                subject: `Re: ${email.subject}`,
+                body: draftBody,
+                createdAt: new Date().toISOString(),
+                aiGenerated: false
+              };
+              
+              setDrafts([...drafts, newDraft]);
+              return newDraft;
             }
-            
-            const newDraft = {
-              id: Date.now(),
-              originalEmailId: email.id,
-              subject: `Re: ${email.subject}`,
-              body: draftBody,
-              createdAt: new Date().toISOString()
-            };
-            
-            setDrafts([...drafts, newDraft]);
           };
 
           const saveDraft = () => {
@@ -527,14 +679,24 @@ Return only the reply text without subject line.`
                         Sign In with Google
                       </button>
                     )}
-                    <button
-                      onClick={processEmails}
-                      disabled={processing}
-                      className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      <CheckIcon className="w-4 h-4" />
-                      <span>{processing ? 'Processing...' : 'Process Emails'}</span>
-                    </button>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => processEmails(false)}
+                        disabled={processing || aiProcessing}
+                        className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        <CheckIcon className="w-4 h-4" />
+                        <span>{processing ? 'Processing...' : 'Process Emails'}</span>
+                      </button>
+                      <button
+                        onClick={() => processEmails(true)}
+                        disabled={processing || aiProcessing}
+                        className="flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        <span>🤖</span>
+                        <span>{aiProcessing ? 'AI Processing...' : 'AI Process'}</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -606,6 +768,30 @@ Return only the reply text without subject line.`
                                     ))}
                                   </div>
                                 )}
+                                
+                                {/* AI-generated metadata */}
+                                {(email.priority || email.sentiment || email.summary) && (
+                                  <div className="mt-2 flex flex-wrap gap-1">
+                                    {email.priority && (
+                                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                        email.priority === 'high' ? 'bg-red-100 text-red-800' :
+                                        email.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                                        'bg-green-100 text-green-800'
+                                      }`}>
+                                        {email.priority} priority
+                                      </span>
+                                    )}
+                                    {email.sentiment && (
+                                      <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium">
+                                        {email.sentiment}
+                                      </span>
+                                    )}
+                                    <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium flex items-center">
+                                      <span>🤖</span>
+                                      <span>AI Analyzed</span>
+                                    </span>
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -632,8 +818,43 @@ Return only the reply text without subject line.`
                                 </span>
                               </p>
                             )}
+                            
+                            {/* AI-generated metadata */}
+                            {(selectedEmail.priority || selectedEmail.sentiment) && (
+                              <div className="flex flex-wrap gap-2">
+                                {selectedEmail.priority && (
+                                  <p className="text-sm text-gray-600">
+                                    <span className="font-medium">Priority:</span>
+                                    <span className={`ml-2 px-2 py-1 rounded text-xs font-medium ${
+                                      selectedEmail.priority === 'high' ? 'bg-red-100 text-red-800' :
+                                      selectedEmail.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                                      'bg-green-100 text-green-800'
+                                    }`}>
+                                      {selectedEmail.priority}
+                                    </span>
+                                  </p>
+                                )}
+                                {selectedEmail.sentiment && (
+                                  <p className="text-sm text-gray-600">
+                                    <span className="font-medium">Sentiment:</span>
+                                    <span className="ml-2 px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium">
+                                      {selectedEmail.sentiment}
+                                    </span>
+                                  </p>
+                                )}
+                              </div>
+                            )}
                           </div>
                           <div className="border-t border-gray-200 pt-4">
+                            {selectedEmail.summary && (
+                              <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                                <h4 className="font-semibold text-purple-800 mb-1 flex items-center">
+                                  <span className="mr-2">🤖</span>
+                                  AI Summary
+                                </h4>
+                                <p className="text-purple-700 text-sm">{selectedEmail.summary}</p>
+                              </div>
+                            )}
                             <p className="text-gray-800 whitespace-pre-wrap">{selectedEmail.body}</p>
                           </div>
                           {selectedEmail.actionItems.length > 0 && (
@@ -652,15 +873,26 @@ Return only the reply text without subject line.`
                               </ul>
                             </div>
                           )}
-                          <button
-                            onClick={() => {
-                              generateDraft(selectedEmail);
-                              setActiveTab('drafts');
-                            }}
-                            className="mt-6 w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                          >
-                            Generate Draft Reply
-                          </button>
+                          <div className="mt-6 space-y-3">
+                            <button
+                              onClick={async () => {
+                                await generateDraft(selectedEmail);
+                                setActiveTab('drafts');
+                              }}
+                              className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                            >
+                              🤖 AI Generate Draft Reply
+                            </button>
+                            <button
+                              onClick={async () => {
+                                await generateDraft(selectedEmail, 'followup');
+                                setActiveTab('drafts');
+                              }}
+                              className="w-full bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+                            >
+                              📧 AI Generate Follow-up
+                            </button>
+                          </div>
                         </div>
                       ) : (
                         <div className="p-6 text-center text-gray-500">
@@ -677,9 +909,23 @@ Return only the reply text without subject line.`
                   <div className="max-w-4xl mx-auto bg-white rounded-lg shadow">
                     <div className="p-4 border-b border-gray-200">
                       <h2 className="text-lg font-semibold">Email Agent Chat</h2>
-                      <p className="text-sm text-gray-600 mt-1">
-                        Ask me to summarize emails, find urgent messages, list tasks, or draft replies
-                      </p>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-600 mt-1">
+                            Ask me to summarize emails, find urgent messages, list tasks, or draft replies
+                          </p>
+                          <p className="text-xs text-purple-600 mt-1 flex items-center">
+                            <span className="mr-1">🤖</span>
+                            Enhanced with Google Gemini AI for smarter responses
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <div className="flex items-center space-x-2">
+                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                            <span className="text-xs text-gray-500">AI Active</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                     <div className="h-[500px] overflow-y-auto p-4 space-y-4">
                       {chatMessages.length === 0 ? (
@@ -706,6 +952,15 @@ Return only the reply text without subject line.`
                                   : 'bg-gray-100 text-gray-900'
                               }`}
                             >
+                              {msg.role === 'agent' && (
+                                <div className="flex items-center justify-between mb-1">
+                                  <div className="flex items-center space-x-1 text-xs opacity-75">
+                                    <span>🤖</span>
+                                    <span>AI Assistant</span>
+                                  </div>
+                                  <div className="w-1 h-1 bg-green-500 rounded-full"></div>
+                                </div>
+                              )}
                               <p className="whitespace-pre-wrap">{msg.content}</p>
                             </div>
                           </div>
@@ -779,7 +1034,15 @@ Return only the reply text without subject line.`
                           drafts.map(draft => (
                             <div key={draft.id} className="p-4">
                               <div className="flex items-start justify-between mb-2">
-                                <h3 className="font-semibold text-gray-900">{draft.subject}</h3>
+                                <div className="flex items-center space-x-2">
+                                  <h3 className="font-semibold text-gray-900">{draft.subject}</h3>
+                                  {draft.aiGenerated && (
+                                    <span className="px-2 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs rounded-full flex items-center space-x-1">
+                                      <span>🤖</span>
+                                      <span>AI Generated</span>
+                                    </span>
+                                  )}
+                                </div>
                                 <button
                                   onClick={() => setDrafts(drafts.filter(d => d.id !== draft.id))}
                                   className="text-red-600 hover:text-red-800 transition-colors"
@@ -789,6 +1052,11 @@ Return only the reply text without subject line.`
                               </div>
                               <p className="text-sm text-gray-600 mb-2">
                                 {new Date(draft.createdAt).toLocaleString()}
+                                {draft.aiGenerated && (
+                                  <span className="ml-2 text-purple-600 font-medium">
+                                    • Enhanced by AI
+                                  </span>
+                                )}
                               </p>
                               <p className="text-gray-800 whitespace-pre-wrap">{draft.body}</p>
                             </div>

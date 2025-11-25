@@ -4,6 +4,7 @@ const express = require('express');
 const cors = require('cors');
 const { google } = require('googleapis');
 const admin = require('firebase-admin');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const app = express();
 app.use(cors());
@@ -20,6 +21,15 @@ try {
   console.error('Failed to load serviceAccountKey.json:', error);
   console.log('Please download the service account key from Firebase Console');
   process.exit(1);
+}
+
+// Initialize Google Gemini AI
+let genAI = null;
+try {
+  genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  console.log('Google Gemini AI initialized successfully');
+} catch (error) {
+  console.error('Failed to initialize Gemini AI:', error);
 }
 
 // Gmail API helper function
@@ -203,6 +213,152 @@ async function storeUserTokensInDB(uid, tokens) {
     throw error;
   }
 }
+
+// AI-powered email draft generation
+app.post('/api/ai/generate-draft', async (req, res) => {
+  try {
+    if (!genAI) {
+      return res.status(500).json({ error: 'Gemini AI not initialized' });
+    }
+
+    const { emailContent, draftType = 'reply' } = req.body;
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
+    let prompt = '';
+    if (draftType === 'reply') {
+      prompt = `Generate a professional email reply based on the following email content. 
+      
+Email to reply to:
+${emailContent}
+
+Guidelines:
+- Keep it concise and professional
+- Match the tone of the original email
+- If it's a meeting request, ask for an agenda
+- If it's a task request, acknowledge and provide timeline
+- Be polite and helpful
+
+Return only the reply text, not including subject line.`;
+    } else if (draftType === 'followup') {
+      prompt = `Generate a polite follow-up email based on the following context:
+
+Context:
+${emailContent}
+
+Guidelines:
+- Professional and courteous
+- Reference the previous conversation
+- Ask for update or next steps
+- Keep it brief and to the point
+
+Return only the email body text.`;
+    } else {
+      prompt = `Generate a professional email based on this content:
+
+${emailContent}
+
+Keep it clear, concise, and professional.`;
+    }
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const draftText = response.text();
+
+    res.json({ draft: draftText });
+  } catch (error) {
+    console.error('Error generating draft:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// AI-powered agent chat responses
+app.post('/api/ai/chat', async (req, res) => {
+  try {
+    if (!genAI) {
+      return res.status(500).json({ error: 'Gemini AI not initialized' });
+    }
+
+    const { message, context } = req.body;
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
+    const prompt = `You are an intelligent email assistant helping with email management. 
+
+User query: ${message}
+
+Context (emails or previous conversation):
+${context || 'No additional context provided'}
+
+Provide a helpful, concise response. You can:
+- Summarize emails
+- Extract action items
+- Suggest next steps
+- Draft responses
+- Prioritize emails
+
+Keep responses practical and actionable.`;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const aiResponse = response.text();
+
+    res.json({ response: aiResponse });
+  } catch (error) {
+    console.error('Error generating AI response:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// AI-powered email categorization and analysis
+app.post('/api/ai/analyze-email', async (req, res) => {
+  try {
+    if (!genAI) {
+      return res.status(500).json({ error: 'Gemini AI not initialized' });
+    }
+
+    const { email } = req.body;
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
+    const prompt = `Analyze this email and provide:
+
+Email:
+Subject: ${email.subject}
+From: ${email.sender}
+Body: ${email.body}
+
+Provide a JSON response with:
+{
+  "category": "Important|Newsletter|Spam|To-Do",
+  "priority": "high|medium|low",
+  "actionItems": [
+    {"task": "description", "deadline": "date or null"}
+  ],
+  "sentiment": "positive|neutral|negative",
+  "summary": "brief summary"
+}
+
+Analyze based on:
+- Important: urgent matters, critical updates, time-sensitive
+- Newsletter: marketing, updates, promotional
+- Spam: suspicious offers, unwanted content
+- To-Do: requires user action
+
+Return only valid JSON.`;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const aiResponse = response.text();
+
+    // Clean the response to extract only JSON
+    const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+    const jsonStr = jsonMatch ? jsonMatch[0] : aiResponse;
+
+    const analysis = JSON.parse(jsonStr);
+    res.json({ analysis });
+  } catch (error) {
+    console.error('Error analyzing email:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
