@@ -24,6 +24,8 @@
     <script src="firebaseConfig.js"></script>
     
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
         .icon {
             display: inline-block;
             width: 1em;
@@ -32,9 +34,147 @@
             stroke: currentColor;
             fill: currentColor;
         }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        /* Modern gradient backgrounds */
+        .bg-gradient-modern {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .bg-gradient-card {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #ec4899 100%);
+        }
+        
+        .bg-gradient-secondary {
+            background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 50%, #8b5cf6 100%);
+        }
+        
+        /* Glassmorphism effects */
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .glass-dark {
+            background: rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Modern shadows */
+        .shadow-modern {
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1), 0 4px 16px rgba(0, 0, 0, 0.06);
+        }
+        
+        .shadow-modern-lg {
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Modern button styles */
+        .btn-modern {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateY(0);
+        }
+        
+        .btn-modern:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-gradient {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #ec4899 100%);
+            background-size: 200% 200%;
+            animation: gradient-shift 3s ease infinite;
+        }
+        
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        /* Modern input styles */
+        .input-modern {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .input-modern:focus {
+            background: rgba(255, 255, 255, 1);
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+        
+        /* Modern card hover effects */
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* Status indicators */
+        .status-online {
+            background: linear-gradient(135deg, #10b981, #059669);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+        }
+        
+        /* Modern scrollbar */
+        .scrollbar-modern::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .scrollbar-modern::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+        
+        .scrollbar-modern::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            border-radius: 3px;
+        }
+        
+        .scrollbar-modern::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #7c3aed, #ec4899);
+        }
+        
+        /* Category badges */
+        .badge-important {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+        
+        .badge-newsletter {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+        }
+        
+        .badge-spam {
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+        }
+        
+        .badge-todo {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+        
+        .badge-ai {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        }
     </style>
 </head>
-<body>
+<body class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
     <div id="root"></div>
 
     <script type="text/babel">
@@ -641,32 +781,51 @@ Return only the reply text without subject line.`
 
           const getCategoryColor = (category) => {
             const colors = {
-              'Important': 'bg-red-100 text-red-800',
-              'Newsletter': 'bg-blue-100 text-blue-800',
-              'Spam': 'bg-gray-100 text-gray-800',
-              'To-Do': 'bg-green-100 text-green-800'
+              'Important': 'badge-important',
+              'Newsletter': 'badge-newsletter',
+              'Spam': 'badge-spam',
+              'To-Do': 'badge-todo'
             };
-            return colors[category] || 'bg-gray-100 text-gray-800';
+            return colors[category] || 'badge-spam';
           };
 
           return (
-            <div className="min-h-screen bg-gray-50">
+            <div className="min-h-screen">
               {/* Header */}
-              <div className="bg-white border-b border-gray-200 px-6 py-4">
+              <div className="glass shadow-modern border-b border-white/20 px-8 py-6">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <MailIcon className="w-8 h-8 text-blue-600" />
-                    <h1 className="text-2xl font-bold text-gray-900">Email Productivity Agent</h1>
-                  </div>
                   <div className="flex items-center space-x-4">
+                    <div className="p-3 bg-gradient-primary rounded-2xl shadow-modern">
+                      <MailIcon className="w-8 h-8 text-white" />
+                    </div>
+                    <div>
+                      <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
+                        Email Productivity Agent
+                      </h1>
+                      <p className="text-sm text-slate-500 mt-1">Powered by Advanced AI</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-6">
                     {isAuthenticated ? (
-                      <div className="flex items-center space-x-3">
-                        <span className="text-sm text-gray-600">
-                          Welcome, {user?.displayName || user?.email}
-                        </span>
+                      <div className="flex items-center space-x-4">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-gradient-to-r from-emerald-400 to-cyan-400 rounded-full flex items-center justify-center">
+                            <span className="text-white font-semibold text-sm">
+                              {(user?.displayName || user?.email)?.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-slate-700">
+                              Welcome back
+                            </p>
+                            <p className="text-xs text-slate-500">
+                              {user?.displayName || user?.email}
+                            </p>
+                          </div>
+                        </div>
                         <button
                           onClick={handleSignOut}
-                          className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+                          className="btn-modern px-6 py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white font-medium rounded-xl shadow-modern disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           Sign Out
                         </button>
@@ -674,26 +833,26 @@ Return only the reply text without subject line.`
                     ) : (
                       <button
                         onClick={handleSignIn}
-                        className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                        className="btn-modern px-6 py-3 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white font-medium rounded-xl shadow-modern"
                       >
                         Sign In with Google
                       </button>
                     )}
-                    <div className="flex space-x-2">
+                    <div className="flex space-x-3">
                       <button
                         onClick={() => processEmails(false)}
                         disabled={processing || aiProcessing}
-                        className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="btn-modern flex items-center space-x-2 px-6 py-3 bg-white/20 backdrop-blur-md text-slate-700 font-medium rounded-xl shadow-modern border border-white/30 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white/30"
                       >
                         <CheckIcon className="w-4 h-4" />
-                        <span>{processing ? 'Processing...' : 'Process Emails'}</span>
+                        <span>{processing ? 'Processing...' : 'Process'}</span>
                       </button>
                       <button
                         onClick={() => processEmails(true)}
                         disabled={processing || aiProcessing}
-                        className="flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="btn-modern flex items-center space-x-2 px-6 py-3 btn-gradient text-white font-medium rounded-xl shadow-modern disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        <span>🤖</span>
+                        <span className="text-lg">🤖</span>
                         <span>{aiProcessing ? 'AI Processing...' : 'AI Process'}</span>
                       </button>
                     </div>
@@ -702,8 +861,8 @@ Return only the reply text without subject line.`
               </div>
 
               {/* Navigation Tabs */}
-              <div className="bg-white border-b border-gray-200">
-                <div className="flex space-x-1 px-6">
+              <div className="glass border-b border-white/20">
+                <div className="flex space-x-1 px-8">
                   {[
                     { id: 'inbox', icon: InboxIcon, label: 'Inbox' },
                     { id: 'agent', icon: ChatIcon, label: 'Agent' },
@@ -713,57 +872,82 @@ Return only the reply text without subject line.`
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
-                      className={`px-4 py-3 font-medium capitalize flex items-center space-x-2 ${
+                      className={`relative px-6 py-4 font-semibold capitalize flex items-center space-x-3 transition-all duration-300 ${
                         activeTab === tab.id
-                          ? 'border-b-2 border-blue-600 text-blue-600'
-                          : 'text-gray-600 hover:text-gray-900'
+                          ? 'text-indigo-600'
+                          : 'text-slate-600 hover:text-slate-800 hover:bg-white/10'
                       }`}
                     >
-                      <tab.icon className="w-4 h-4" />
-                      <span>{tab.label}</span>
+                      <tab.icon className={`w-5 h-5 ${activeTab === tab.id ? 'text-indigo-600' : 'text-slate-500'}`} />
+                      <span className="text-sm">{tab.label}</span>
+                      {activeTab === tab.id && (
+                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full"></div>
+                      )}
                     </button>
                   ))}
                 </div>
               </div>
 
               {/* Main Content */}
-              <div className="p-6">
+              <div className="p-8">
                 {/* Inbox View */}
                 {activeTab === 'inbox' && (
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div className="bg-white rounded-lg shadow">
-                      <div className="p-4 border-b border-gray-200">
-                        <h2 className="text-lg font-semibold">Inbox ({emails.length})</h2>
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                    <div className="glass rounded-2xl shadow-modern border border-white/20 overflow-hidden">
+                      <div className="p-6 border-b border-white/10">
+                        <div className="flex items-center justify-between">
+                          <h2 className="text-xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
+                            Inbox
+                          </h2>
+                          <span className="px-3 py-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-sm font-medium rounded-full">
+                            {emails.length} emails
+                          </span>
+                        </div>
                       </div>
-                      <div className="divide-y divide-gray-200 max-h-[600px] overflow-y-auto">
+                      <div className="divide-y divide-white/10 max-h-[650px] overflow-y-auto scrollbar-modern">
                         {emails.map(email => (
                           <div
                             key={email.id}
                             onClick={() => setSelectedEmail(email)}
-                            className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors ${
-                              selectedEmail?.id === email.id ? 'bg-blue-50' : ''
+                            className={`card-hover p-6 cursor-pointer transition-all duration-300 ${
+                              selectedEmail?.id === email.id 
+                                ? 'bg-gradient-to-r from-indigo-50/50 to-purple-50/50 border-l-4 border-indigo-500' 
+                                : 'hover:bg-white/20'
                             }`}
                           >
-                            <div className="flex items-start justify-between">
+                            <div className="flex items-start justify-between mb-3">
                               <div className="flex-1">
-                                <div className="flex items-center space-x-2 mb-1">
-                                  <span className="font-semibold text-gray-900">{email.sender}</span>
+                                <div className="flex items-center space-x-3 mb-2">
+                                  <div className="w-8 h-8 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full flex items-center justify-center">
+                                    <span className="text-white text-xs font-semibold">
+                                      {email.sender.charAt(0).toUpperCase()}
+                                    </span>
+                                  </div>
+                                  <span className="font-semibold text-slate-800 text-sm">
+                                    {email.sender}
+                                  </span>
                                   {email.category && (
-                                    <span className={`px-2 py-1 rounded text-xs font-medium ${getCategoryColor(email.category)}`}>
+                                    <span className={`px-3 py-1 rounded-full text-xs font-semibold text-white ${getCategoryColor(email.category)}`}>
                                       {email.category}
                                     </span>
                                   )}
                                 </div>
-                                <p className="font-medium text-gray-800 mb-1">{email.subject}</p>
-                                <p className="text-sm text-gray-500">
-                                  {new Date(email.timestamp).toLocaleString()}
-                                </p>
+                                <h3 className="font-semibold text-slate-900 mb-2 leading-tight">
+                                  {email.subject}
+                                </h3>
+                                <div className="flex items-center space-x-2 text-xs text-slate-500">
+                                  <span>{new Date(email.timestamp).toLocaleDateString()}</span>
+                                  <span>•</span>
+                                  <span>{new Date(email.timestamp).toLocaleTimeString()}</span>
+                                </div>
                                 {email.actionItems.length > 0 && (
-                                  <div className="mt-2 space-y-1">
+                                  <div className="mt-3 space-y-2">
                                     {email.actionItems.map((item, idx) => (
-                                      <div key={idx} className="text-sm text-green-700 flex items-start">
-                                        <CheckIcon className="w-3 h-3 mr-1 mt-0.5 flex-shrink-0" />
-                                        <span>{item.task}</span>
+                                      <div key={idx} className="flex items-start text-sm">
+                                        <div className="w-2 h-2 bg-emerald-400 rounded-full mt-2 mr-2 flex-shrink-0"></div>
+                                        <span className="text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg">
+                                          {item.task}
+                                        </span>
                                       </div>
                                     ))}
                                   </div>
@@ -771,24 +955,24 @@ Return only the reply text without subject line.`
                                 
                                 {/* AI-generated metadata */}
                                 {(email.priority || email.sentiment || email.summary) && (
-                                  <div className="mt-2 flex flex-wrap gap-1">
+                                  <div className="mt-3 flex flex-wrap gap-2">
                                     {email.priority && (
-                                      <span className={`px-2 py-1 rounded text-xs font-medium ${
-                                        email.priority === 'high' ? 'bg-red-100 text-red-800' :
-                                        email.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                                        'bg-green-100 text-green-800'
+                                      <span className={`px-3 py-1 rounded-full text-xs font-medium text-white ${
+                                        email.priority === 'high' ? 'bg-gradient-to-r from-red-500 to-pink-500' :
+                                        email.priority === 'medium' ? 'bg-gradient-to-r from-yellow-500 to-orange-500' :
+                                        'bg-gradient-to-r from-green-500 to-emerald-500'
                                       }`}>
-                                        {email.priority} priority
+                                        {email.priority}
                                       </span>
                                     )}
                                     {email.sentiment && (
-                                      <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium">
+                                      <span className="px-3 py-1 bg-gradient-to-r from-slate-500 to-slate-600 text-white rounded-full text-xs font-medium">
                                         {email.sentiment}
                                       </span>
                                     )}
-                                    <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium flex items-center">
+                                    <span className="px-3 py-1 badge-ai text-white rounded-full text-xs font-medium flex items-center space-x-1">
                                       <span>🤖</span>
-                                      <span>AI Analyzed</span>
+                                      <span>AI</span>
                                     </span>
                                   </div>
                                 )}
@@ -799,105 +983,129 @@ Return only the reply text without subject line.`
                       </div>
                     </div>
 
-                    <div className="bg-white rounded-lg shadow">
+                    <div className="glass rounded-2xl shadow-modern border border-white/20 overflow-hidden">
                       {selectedEmail ? (
-                        <div className="p-6">
-                          <h3 className="text-xl font-semibold mb-4">{selectedEmail.subject}</h3>
-                          <div className="space-y-3 mb-4">
-                            <p className="text-sm text-gray-600">
-                              <span className="font-medium">From:</span> {selectedEmail.sender}
-                            </p>
-                            <p className="text-sm text-gray-600">
-                              <span className="font-medium">Date:</span> {new Date(selectedEmail.timestamp).toLocaleString()}
-                            </p>
-                            {selectedEmail.category && (
-                              <p className="text-sm text-gray-600">
-                                <span className="font-medium">Category:</span>
-                                <span className={`ml-2 px-2 py-1 rounded text-xs font-medium ${getCategoryColor(selectedEmail.category)}`}>
+                        <div className="p-8">
+                          <div className="mb-6">
+                            <div className="flex items-start justify-between mb-4">
+                              <h3 className="text-2xl font-bold text-slate-900 leading-tight pr-4">
+                                {selectedEmail.subject}
+                              </h3>
+                              {selectedEmail.category && (
+                                <span className={`px-4 py-2 rounded-full text-sm font-bold text-white ${getCategoryColor(selectedEmail.category)}`}>
                                   {selectedEmail.category}
                                 </span>
-                              </p>
-                            )}
-                            
-                            {/* AI-generated metadata */}
-                            {(selectedEmail.priority || selectedEmail.sentiment) && (
-                              <div className="flex flex-wrap gap-2">
-                                {selectedEmail.priority && (
-                                  <p className="text-sm text-gray-600">
-                                    <span className="font-medium">Priority:</span>
-                                    <span className={`ml-2 px-2 py-1 rounded text-xs font-medium ${
-                                      selectedEmail.priority === 'high' ? 'bg-red-100 text-red-800' :
-                                      selectedEmail.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                                      'bg-green-100 text-green-800'
-                                    }`}>
-                                      {selectedEmail.priority}
-                                    </span>
+                              )}
+                            </div>
+                            <div className="space-y-3">
+                              <div className="flex items-center space-x-3">
+                                <div className="w-10 h-10 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full flex items-center justify-center">
+                                  <span className="text-white font-semibold text-sm">
+                                    {selectedEmail.sender.charAt(0).toUpperCase()}
+                                  </span>
+                                </div>
+                                <div>
+                                  <p className="font-semibold text-slate-800 text-sm">
+                                    {selectedEmail.sender}
                                   </p>
-                                )}
-                                {selectedEmail.sentiment && (
-                                  <p className="text-sm text-gray-600">
-                                    <span className="font-medium">Sentiment:</span>
-                                    <span className="ml-2 px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium">
-                                      {selectedEmail.sentiment}
-                                    </span>
+                                  <p className="text-sm text-slate-500">
+                                    {new Date(selectedEmail.timestamp).toLocaleDateString()} at {new Date(selectedEmail.timestamp).toLocaleTimeString()}
                                   </p>
-                                )}
+                                </div>
                               </div>
-                            )}
+                              
+                              {/* AI-generated metadata */}
+                              {(selectedEmail.priority || selectedEmail.sentiment) && (
+                                <div className="flex flex-wrap gap-3 pt-2">
+                                  {selectedEmail.priority && (
+                                    <div className="flex items-center space-x-2">
+                                      <span className="text-sm font-medium text-slate-600">Priority:</span>
+                                      <span className={`px-3 py-1 rounded-full text-sm font-bold text-white ${
+                                        selectedEmail.priority === 'high' ? 'bg-gradient-to-r from-red-500 to-pink-500' :
+                                        selectedEmail.priority === 'medium' ? 'bg-gradient-to-r from-yellow-500 to-orange-500' :
+                                        'bg-gradient-to-r from-green-500 to-emerald-500'
+                                      }`}>
+                                        {selectedEmail.priority}
+                                      </span>
+                                    </div>
+                                  )}
+                                  {selectedEmail.sentiment && (
+                                    <div className="flex items-center space-x-2">
+                                      <span className="text-sm font-medium text-slate-600">Sentiment:</span>
+                                      <span className="px-3 py-1 bg-gradient-to-r from-slate-500 to-slate-600 text-white rounded-full text-sm font-medium">
+                                        {selectedEmail.sentiment}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
                           </div>
-                          <div className="border-t border-gray-200 pt-4">
+                          
+                          <div className="border-t border-white/20 pt-6">
                             {selectedEmail.summary && (
-                              <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
-                                <h4 className="font-semibold text-purple-800 mb-1 flex items-center">
-                                  <span className="mr-2">🤖</span>
+                              <div className="mb-6 p-4 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200/50 rounded-2xl">
+                                <h4 className="font-bold text-purple-800 mb-2 flex items-center">
+                                  <span className="mr-2 text-lg">🤖</span>
                                   AI Summary
                                 </h4>
-                                <p className="text-purple-700 text-sm">{selectedEmail.summary}</p>
+                                <p className="text-purple-700 text-sm leading-relaxed">{selectedEmail.summary}</p>
                               </div>
                             )}
-                            <p className="text-gray-800 whitespace-pre-wrap">{selectedEmail.body}</p>
+                            <div className="prose prose-slate max-w-none">
+                              <p className="text-slate-700 whitespace-pre-wrap leading-relaxed">{selectedEmail.body}</p>
+                            </div>
                           </div>
+                          
                           {selectedEmail.actionItems.length > 0 && (
-                            <div className="mt-6 border-t border-gray-200 pt-4">
-                              <h4 className="font-semibold mb-2">Action Items:</h4>
-                              <ul className="space-y-2">
+                            <div className="mt-8 border-t border-white/20 pt-6">
+                              <h4 className="font-bold text-slate-800 mb-4 flex items-center">
+                                <span className="mr-2">✅</span>
+                                Action Items
+                              </h4>
+                              <ul className="space-y-3">
                                 {selectedEmail.actionItems.map((item, idx) => (
-                                  <li key={idx} className="flex items-start text-sm">
-                                    <CheckIcon className="w-4 h-4 mr-2 mt-0.5 text-green-600 flex-shrink-0" />
+                                  <li key={idx} className="flex items-start bg-white/50 rounded-xl p-4 border border-white/30">
+                                    <CheckIcon className="w-5 h-5 mr-3 mt-0.5 text-emerald-500 flex-shrink-0" />
                                     <div>
-                                      <p className="font-medium">{item.task}</p>
-                                      <p className="text-gray-500">Deadline: {item.deadline}</p>
+                                      <p className="font-semibold text-slate-800">{item.task}</p>
+                                      <p className="text-sm text-slate-500 mt-1">Deadline: {item.deadline}</p>
                                     </div>
                                   </li>
                                 ))}
                               </ul>
                             </div>
                           )}
-                          <div className="mt-6 space-y-3">
+                          
+                          <div className="mt-8 space-y-4">
                             <button
                               onClick={async () => {
                                 await generateDraft(selectedEmail);
                                 setActiveTab('drafts');
                               }}
-                              className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                              className="w-full btn-modern py-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold rounded-xl shadow-modern flex items-center justify-center space-x-2"
                             >
-                              🤖 AI Generate Draft Reply
+                              <span className="text-lg">🤖</span>
+                              <span>AI Generate Draft Reply</span>
                             </button>
                             <button
                               onClick={async () => {
                                 await generateDraft(selectedEmail, 'followup');
                                 setActiveTab('drafts');
                               }}
-                              className="w-full bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+                              className="w-full btn-modern py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-xl shadow-modern flex items-center justify-center space-x-2"
                             >
-                              📧 AI Generate Follow-up
+                              <span className="text-lg">📧</span>
+                              <span>AI Generate Follow-up</span>
                             </button>
                           </div>
                         </div>
                       ) : (
-                        <div className="p-6 text-center text-gray-500">
-                          <InboxIcon className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                          <p>Select an email to view details</p>
+                        <div className="p-12 text-center">
+                          <div className="w-20 h-20 bg-gradient-to-r from-slate-200 to-slate-300 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                            <InboxIcon className="w-10 h-10 text-slate-400" />
+                          </div>
+                          <p className="text-slate-500 font-medium">Select an email to view details</p>
                         </div>
                       )}
                     </div>
@@ -906,84 +1114,96 @@ Return only the reply text without subject line.`
 
                 {/* Agent Chat View */}
                 {activeTab === 'agent' && (
-                  <div className="max-w-4xl mx-auto bg-white rounded-lg shadow">
-                    <div className="p-4 border-b border-gray-200">
-                      <h2 className="text-lg font-semibold">Email Agent Chat</h2>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-gray-600 mt-1">
-                            Ask me to summarize emails, find urgent messages, list tasks, or draft replies
-                          </p>
-                          <p className="text-xs text-purple-600 mt-1 flex items-center">
-                            <span className="mr-1">🤖</span>
-                            Enhanced with Google Gemini AI for smarter responses
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <div className="flex items-center space-x-2">
-                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                            <span className="text-xs text-gray-500">AI Active</span>
+                  <div className="max-w-5xl mx-auto">
+                    <div className="glass rounded-2xl shadow-modern border border-white/20 overflow-hidden">
+                      <div className="p-8 border-b border-white/10">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h2 className="text-2xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent mb-2">
+                              AI Email Agent
+                            </h2>
+                            <p className="text-slate-600 text-sm leading-relaxed">
+                              Ask me to summarize emails, find urgent messages, list tasks, or draft replies
+                            </p>
+                            <div className="flex items-center mt-3 space-x-2">
+                              <span className="text-lg">🤖</span>
+                              <p className="text-xs text-purple-600 font-medium">
+                                Enhanced with Google Gemini AI for smarter responses
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="flex items-center space-x-3">
+                              <div className="flex items-center space-x-2">
+                                <div className="status-online w-3 h-3 rounded-full animate-pulse"></div>
+                                <span className="text-sm text-slate-600 font-medium">AI Active</span>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="h-[500px] overflow-y-auto p-4 space-y-4">
-                      {chatMessages.length === 0 ? (
-                        <div className="text-center text-gray-500 mt-20">
-                          <ChatIcon className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                          <p className="text-lg mb-2">Start a conversation with the Email Agent</p>
-                          <div className="mt-4 text-sm space-y-2">
-                            <p className="font-medium">Try asking:</p>
-                            <p className="text-blue-600">"Show me all urgent emails"</p>
-                            <p className="text-blue-600">"What tasks do I need to do?"</p>
-                            <p className="text-blue-600">"Summarize this email"</p>
-                          </div>
-                        </div>
-                      ) : (
-                        chatMessages.map((msg, idx) => (
-                          <div
-                            key={idx}
-                            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                          >
-                            <div
-                              className={`max-w-[70%] rounded-lg px-4 py-2 ${
-                                msg.role === 'user'
-                                  ? 'bg-blue-600 text-white'
-                                  : 'bg-gray-100 text-gray-900'
-                              }`}
-                            >
-                              {msg.role === 'agent' && (
-                                <div className="flex items-center justify-between mb-1">
-                                  <div className="flex items-center space-x-1 text-xs opacity-75">
-                                    <span>🤖</span>
-                                    <span>AI Assistant</span>
-                                  </div>
-                                  <div className="w-1 h-1 bg-green-500 rounded-full"></div>
-                                </div>
-                              )}
-                              <p className="whitespace-pre-wrap">{msg.content}</p>
+                      <div className="h-[600px] overflow-y-auto p-8 space-y-6 scrollbar-modern">
+                        {chatMessages.length === 0 ? (
+                          <div className="text-center text-slate-500 mt-20">
+                            <div className="w-20 h-20 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                              <ChatIcon className="w-10 h-10 text-white" />
+                            </div>
+                            <p className="text-lg mb-2 font-medium">Start a conversation with the Email Agent</p>
+                            <div className="mt-6 text-sm space-y-3">
+                              <p className="font-semibold text-slate-600">Try asking:</p>
+                              <div className="space-y-2">
+                                <p className="text-indigo-600 bg-indigo-50 px-4 py-2 rounded-lg inline-block">"Show me all urgent emails"</p><br/>
+                                <p className="text-purple-600 bg-purple-50 px-4 py-2 rounded-lg inline-block">"What tasks do I need to do?"</p><br/>
+                                <p className="text-pink-600 bg-pink-50 px-4 py-2 rounded-lg inline-block">"Summarize this email"</p>
+                              </div>
                             </div>
                           </div>
-                        ))
-                      )}
-                    </div>
-                    <div className="p-4 border-t border-gray-200">
-                      <div className="flex space-x-2">
-                        <input
-                          type="text"
-                          value={chatInput}
-                          onChange={(e) => setChatInput(e.target.value)}
-                          onKeyPress={(e) => e.key === 'Enter' && handleChatSubmit()}
-                          placeholder="Ask the agent..."
-                          className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                        <button
-                          onClick={handleChatSubmit}
-                          disabled={!chatInput.trim()}
-                          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        >
-                          <SendIcon className="w-5 h-5" />
-                        </button>
+                        ) : (
+                          chatMessages.map((msg, idx) => (
+                            <div
+                              key={idx}
+                              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                            >
+                              <div
+                                className={`max-w-[75%] rounded-2xl px-6 py-4 ${
+                                  msg.role === 'user'
+                                    ? 'btn-gradient text-white shadow-modern'
+                                    : 'bg-white/50 backdrop-blur-sm text-slate-800 border border-white/30'
+                                }`}
+                              >
+                                {msg.role === 'agent' && (
+                                  <div className="flex items-center justify-between mb-3">
+                                    <div className="flex items-center space-x-2 text-xs opacity-75">
+                                      <span className="text-lg">🤖</span>
+                                      <span className="font-medium">AI Assistant</span>
+                                    </div>
+                                    <div className="status-online w-2 h-2 rounded-full"></div>
+                                  </div>
+                                )}
+                                <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                      <div className="p-8 border-t border-white/10">
+                        <div className="flex space-x-4">
+                          <input
+                            type="text"
+                            value={chatInput}
+                            onChange={(e) => setChatInput(e.target.value)}
+                            onKeyPress={(e) => e.key === 'Enter' && handleChatSubmit()}
+                            placeholder="Ask the agent anything about your emails..."
+                            className="input-modern flex-1 border-0 bg-white/50 backdrop-blur-sm rounded-xl px-6 py-4 focus:outline-none focus:ring-4 focus:ring-indigo-500/20 placeholder-slate-500"
+                          />
+                          <button
+                            onClick={handleChatSubmit}
+                            disabled={!chatInput.trim()}
+                            className="btn-modern px-8 py-4 bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-medium rounded-xl shadow-modern disabled:opacity-50 disabled:cursor-not-allowed hover:from-indigo-600 hover:to-purple-600"
+                          >
+                            <SendIcon className="w-5 h-5" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -991,53 +1211,64 @@ Return only the reply text without subject line.`
 
                 {/* Drafts View */}
                 {activeTab === 'drafts' && (
-                  <div className="max-w-4xl mx-auto space-y-6">
-                    <div className="bg-white rounded-lg shadow p-6">
-                      <h2 className="text-lg font-semibold mb-4">Create New Draft</h2>
-                      <div className="space-y-4">
+                  <div className="max-w-5xl mx-auto space-y-8">
+                    <div className="glass rounded-2xl shadow-modern border border-white/20 p-8">
+                      <h2 className="text-xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent mb-6">
+                        Create New Draft
+                      </h2>
+                      <div className="space-y-6">
                         <input
                           type="text"
                           placeholder="Subject"
                           value={draftContent.subject}
                           onChange={(e) => setDraftContent({ ...draftContent, subject: e.target.value })}
-                          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="input-modern w-full rounded-xl px-6 py-4 border-0 bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/20 placeholder-slate-500"
                         />
                         <textarea
                           placeholder="Email body..."
                           value={draftContent.body}
                           onChange={(e) => setDraftContent({ ...draftContent, body: e.target.value })}
                           rows={10}
-                          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="input-modern w-full rounded-xl px-6 py-4 border-0 bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/20 placeholder-slate-500"
                         />
                         <button
                           onClick={saveDraft}
                           disabled={!draftContent.subject || !draftContent.body}
-                          className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          className="btn-modern flex items-center space-x-3 px-8 py-4 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white font-medium rounded-xl shadow-modern disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          <SaveIcon className="w-4 h-4" />
+                          <SaveIcon className="w-5 h-5" />
                           <span>Save Draft</span>
                         </button>
                       </div>
                     </div>
 
-                    <div className="bg-white rounded-lg shadow">
-                      <div className="p-4 border-b border-gray-200">
-                        <h2 className="text-lg font-semibold">Saved Drafts ({drafts.length})</h2>
+                    <div className="glass rounded-2xl shadow-modern border border-white/20 overflow-hidden">
+                      <div className="p-6 border-b border-white/10">
+                        <div className="flex items-center justify-between">
+                          <h2 className="text-xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
+                            Saved Drafts
+                          </h2>
+                          <span className="px-4 py-2 bg-gradient-to-r from-slate-500 to-slate-600 text-white text-sm font-medium rounded-full">
+                            {drafts.length} drafts
+                          </span>
+                        </div>
                       </div>
-                      <div className="divide-y divide-gray-200">
+                      <div className="divide-y divide-white/10 max-h-[600px] overflow-y-auto scrollbar-modern">
                         {drafts.length === 0 ? (
-                          <div className="p-6 text-center text-gray-500">
-                            <FileIcon className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                            <p>No drafts yet. Generate replies or create new drafts above.</p>
+                          <div className="p-12 text-center">
+                            <div className="w-20 h-20 bg-gradient-to-r from-slate-200 to-slate-300 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                              <FileIcon className="w-10 h-10 text-slate-400" />
+                            </div>
+                            <p className="text-slate-500 font-medium">No drafts yet. Generate replies or create new drafts above.</p>
                           </div>
                         ) : (
                           drafts.map(draft => (
-                            <div key={draft.id} className="p-4">
-                              <div className="flex items-start justify-between mb-2">
-                                <div className="flex items-center space-x-2">
-                                  <h3 className="font-semibold text-gray-900">{draft.subject}</h3>
+                            <div key={draft.id} className="p-6 card-hover">
+                              <div className="flex items-start justify-between mb-4">
+                                <div className="flex items-center space-x-3">
+                                  <h3 className="font-bold text-slate-900">{draft.subject}</h3>
                                   {draft.aiGenerated && (
-                                    <span className="px-2 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs rounded-full flex items-center space-x-1">
+                                    <span className="px-3 py-1 badge-ai text-white text-xs rounded-full flex items-center space-x-1">
                                       <span>🤖</span>
                                       <span>AI Generated</span>
                                     </span>
@@ -1045,20 +1276,22 @@ Return only the reply text without subject line.`
                                 </div>
                                 <button
                                   onClick={() => setDrafts(drafts.filter(d => d.id !== draft.id))}
-                                  className="text-red-600 hover:text-red-800 transition-colors"
+                                  className="text-red-500 hover:text-red-700 transition-colors p-2 hover:bg-red-50 rounded-lg"
                                 >
                                   <TrashIcon className="w-4 h-4" />
                                 </button>
                               </div>
-                              <p className="text-sm text-gray-600 mb-2">
-                                {new Date(draft.createdAt).toLocaleString()}
+                              <p className="text-sm text-slate-500 mb-4">
+                                {new Date(draft.createdAt).toLocaleDateString()} at {new Date(draft.createdAt).toLocaleTimeString()}
                                 {draft.aiGenerated && (
                                   <span className="ml-2 text-purple-600 font-medium">
                                     • Enhanced by AI
                                   </span>
                                 )}
                               </p>
-                              <p className="text-gray-800 whitespace-pre-wrap">{draft.body}</p>
+                              <p className="text-slate-700 whitespace-pre-wrap leading-relaxed bg-slate-50/50 p-4 rounded-xl border border-slate-200/50">
+                                {draft.body}
+                              </p>
                             </div>
                           ))
                         )}
@@ -1069,37 +1302,39 @@ Return only the reply text without subject line.`
 
                 {/* Prompts Configuration */}
                 {activeTab === 'prompts' && (
-                  <div className="max-w-4xl mx-auto space-y-6">
+                  <div className="max-w-5xl mx-auto space-y-8">
                     {Object.entries(prompts).map(([key, value]) => (
-                      <div key={key} className="bg-white rounded-lg shadow p-6">
-                        <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-lg font-semibold capitalize">{key.replace(/([A-Z])/g, ' $1').trim()} Prompt</h3>
+                      <div key={key} className="glass rounded-2xl shadow-modern border border-white/20 p-8">
+                        <div className="flex items-center justify-between mb-6">
+                          <h3 className="text-xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent capitalize">
+                            {key.replace(/([A-Z])/g, ' $1').trim()} Prompt
+                          </h3>
                           <button
                             onClick={() => setEditingPrompt(editingPrompt === key ? null : key)}
-                            className="flex items-center space-x-2 text-blue-600 hover:text-blue-800 transition-colors"
+                            className="btn-modern flex items-center space-x-2 px-6 py-3 text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 rounded-xl font-medium transition-all"
                           >
                             <EditIcon className="w-4 h-4" />
                             <span>{editingPrompt === key ? 'Cancel' : 'Edit'}</span>
                           </button>
                         </div>
                         {editingPrompt === key ? (
-                          <div className="space-y-3">
+                          <div className="space-y-4">
                             <textarea
                               value={value}
                               onChange={(e) => setPrompts({ ...prompts, [key]: e.target.value })}
-                              rows={8}
-                              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                              rows={10}
+                              className="input-modern w-full rounded-xl px-6 py-4 border-0 bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/20 font-mono text-sm"
                             />
                             <button
                               onClick={() => setEditingPrompt(null)}
-                              className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                              className="btn-modern flex items-center space-x-2 px-8 py-4 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white font-medium rounded-xl shadow-modern"
                             >
                               <SaveIcon className="w-4 h-4" />
                               <span>Save Prompt</span>
                             </button>
                           </div>
                         ) : (
-                          <pre className="bg-gray-50 p-4 rounded-lg text-sm whitespace-pre-wrap font-mono text-gray-700">
+                          <pre className="bg-slate-50/50 p-6 rounded-xl text-sm whitespace-pre-wrap font-mono text-slate-700 border border-slate-200/50">
                             {value}
                           </pre>
                         )}
